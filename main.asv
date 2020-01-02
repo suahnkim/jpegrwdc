@@ -1,0 +1,64 @@
+function main
+%% Read input image
+image_name='lena512';
+image = double(imread([image_name '.bmp']));
+
+%% Quantization factor
+q_factor = 70;
+
+%% Prepare payload
+[col row] = size(image);
+payload_maximum=randi([0,1],1,col*row/64);
+payload_size = 100;
+
+payload=[payload_maximum(1:payload_size)];
+
+%% Embed
+[original_JPEG, watermarked_JPEG,failed_flag]=jpegrwdc_pixel(image,q_factor,payload);
+if failed_flag == 1
+    disp('Could not embed the payload')
+    pause
+end
+jpeg_write(original_JPEG.JPEG_struct,[image_name '.jpg']);
+jpeg_write(watermarked_JPEG.JPEG_struct,[image_name '_watermarked.jpg']);
+%% Check recovery
+watermarked_image = jpeg_read([image_name '_watermarked.jpg']);
+[payload_recovered, recovered_JPEG] = recover_jpegrwdc(watermarked_image);
+jpeg_write(recovered_JPEG,[image_name '_recovered.jpg']);
+
+original=double(imread([image_name '.jpg']));
+recovered=double(imread([image_name '_recovered.jpg']));
+
+if not(isequal(original,recovered))
+    disp('Original quantized DCT coefficient could not get recovered')
+disp('Program will pause')
+    pause
+else 
+        disp('Original quantized DCT coefficient could not get recovered')
+end
+    if not(isequal(payload_recovered,payload))
+        disp('Payload could not get recovered')
+    disp('Program will pause')
+    pause
+    else
+                disp('Payload has been recovered')
+    end
+    
+
+% file size
+disp(['Original JPEG File size is ' num2str(cell_size([stream_AC stream_DC])) ' bits']) 
+disp(['Watermarked JPEG File size is ' num2str(cell_size([stream_AC stream_watermarked_DC])) ' bits']) 
+disp([num2str(length(payload_recovered)) ' bits are embedded'])
+%% Display results
+%watermarked image
+figure(1)
+imshow(uint8(w_reconstructed))
+
+%original JPEG image
+figure(2)
+imshow(uint8(reconstructed))
+pause
+end
+function [cell_length]=cell_size(A)
+cell_length=length(cell2mat(A));
+end

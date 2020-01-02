@@ -1,37 +1,32 @@
-function [recovered_payload, recovered_qc] = recover_jpegrwdc(watermarked_qc,q_factor)
-DCTQ_50=[...
-    16 11 10 16 24 40 51 61;...
-    12 12 14 19 26 58 60 55;...
-    14 13 16 24 40 57 69 56;...
-    14 17 22 29 51 87 80 62;...
-    18 22 37 56 68 109 103 77;...
-    24 36 55 64 81 194 113 92;...
-    49 64 78 87 103 121 120 101;...
-    72 92 95 98 112 100 103 99];
-
+function [recovered_payload, recovered_JPEG] = recover_jpegrwdc(watermarked_JPEG)
+DCTQ=watermarked_JPEG.quant_tables{1,1};
+watermarked_qc=watermarked_JPEG.coef_arrays{1,1};
+% col=watermarked_JPEG.image_height;
+% row=watermarked_JPEG.image_width;
 order_zig=[1,2,9,17,10,3,4,11,18,25,33,26,19,12,5,6,13,20,27,34,41,49,42,35,28,21,14,7,8,15,22,29,36,43,50,57,58,51,44,37,30,23,16,24,31,38,45,52,59,60,53,46,39,32,40,47,54,61,62,55,48,56,63,64];
+
 %% Read Image
 
 [col row]=size(image);
-if q_factor <50
-    s_factor = 5000/q_factor;
-else
-    s_factor = 200 - q_factor*2;
-end
-
-
-DCTQ_50 = DCTQ_50*s_factor + 50;
-DCTQ_50 = (DCTQ_50/100);
-
-
-for i = 1:1:8
-    for j = 1:1:8
-        if DCTQ_50(i,j) <1
-            DCTQ_50(i,j) = 1;
-        end
-    end
-end
-DCTQ=double(uint8(round(DCTQ_50)));
+% if q_factor <50
+%     s_factor = 5000/q_factor;
+% else
+%     s_factor = 200 - q_factor*2;
+% end
+% 
+% 
+% DCTQ_50 = DCTQ_50*s_factor + 50;
+% DCTQ_50 = (DCTQ_50/100);
+% 
+% 
+% for i = 1:1:8
+%     for j = 1:1:8
+%         if DCTQ_50(i,j) <1
+%             DCTQ_50(i,j) = 1;
+%         end
+%     end
+% end
+% DCTQ=double(uint8(round(DCTQ_50)));
 
 [sorted_list_odd,~]=prediction_list(watermarked_qc,DCTQ,order_zig,1);
 %recover
@@ -134,7 +129,8 @@ end
 
 temp_payload=[recovered_payload(recovered_payload_limit/2+1:end) recovered_payload(1:recovered_payload_limit/2)];
 recovered_payload=temp_payload;
-
+recovered_JPEG=watermarked_JPEG;
+recovered_JPEG.coef_arrays=mat2cell(recovered_qc,col,row);
 end
 
 function [sorted_list,zig_zag_coeff]=prediction_list(TQ,DCTQ,order_zig,polarity)

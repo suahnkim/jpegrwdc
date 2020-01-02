@@ -5,6 +5,10 @@
 
 function [stream_AC, stream_DC, stream_watermarked_DC, watermarked_qc, Quantized_DCT,w_reconstructed,reconstructed,failed_flag]=jpegrwdc(image,q_factor,payload)
 %% Initialize Variables
+%Load JPEG tables for initialization (JPEG_struct)
+load('JPEG_grey_init_table.mat');
+
+
 failed_flag=0;
 DCTQ_50=[...
     16 11 10 16 24 40 51 61;...
@@ -57,9 +61,6 @@ if d == 3
 else
     img=image(:,:,1);
 end
-
-%% Watermarking input check
-
 
 %% Segmenting Image Blocks Of 8x8
 k=0;
